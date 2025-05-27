@@ -88,3 +88,7 @@ for servo in servos:
     servo.stop()
 GPIO.cleanup()
 
+sudo apt install python3-gpiozero
+
+sudo systemctl start pigpiod
+sudo systemctl enable pigpiod
