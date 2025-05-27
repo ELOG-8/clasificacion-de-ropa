@@ -2,25 +2,35 @@ import numpy as np
 import cv2
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import pigpio
+import RPi.GPIO as GPIO
 import time
 
-# ==== CONFIGURACIÓN SERVOMOTORES ====
-pi = pigpio.pi()
-if not pi.connected:
-    print("Error: pigpiod no está corriendo.")
-    exit()
+# ==== CONFIGURACIÓN GPIO ====
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-servo_blanca_pin = 17  # GPIO para ropa blanca
-servo_oscura_pin = 27  # GPIO para ropa oscura
-servo_colores_pin = 22 # GPIO para ropa de colores
+servo_pins = {
+    'Blanca': 17,
+    'Oscura': 27,
+    'Colores': 22
+}
 
-def mover_servo(pin):
-    pi.set_servo_pulsewidth(pin, 2000)  # Abrir
-    time.sleep(1.2)
-    pi.set_servo_pulsewidth(pin, 1000)  # Cerrar
+servos = {}
+
+# Configurar pines y objetos PWM
+for key, pin in servo_pins.items():
+    GPIO.setup(pin, GPIO.OUT)
+    servo = GPIO.PWM(pin, 50)  # 50 Hz
+    servo.start(0)
+    servos[key] = servo
+
+def mover_servo(clase):
+    servo = servos[clase]
+    servo.ChangeDutyCycle(7.5)  # Posición abierta (~90°)
+    time.sleep(1)
+    servo.ChangeDutyCycle(2.5)  # Posición cerrada (~0°)
     time.sleep(0.5)
-    pi.set_servo_pulsewidth(pin, 0)     # Detener señal
+    servo.ChangeDutyCycle(0)    # Detener señal
 
 # ==== MODELO TFLITE ====
 interpreter = tf.lite.Interpreter(model_path='/home/elog/my_model.tflite')
@@ -63,25 +73,23 @@ while True:
 
         print(f"Predicción: {pred_class} ({confidence*100:.1f}%)")
 
-        # === ACCIÓN SEGÚN CLASE ===
-        if pred_class == 'Blanca':
-            mover_servo(servo_blanca_pin)
-        elif pred_class == 'Oscura':
-            mover_servo(servo_oscura_pin)
-        elif pred_class == 'Colores':
-            mover_servo(servo_colores_pin)
+        if pred_class in servos:
+            mover_servo(pred_class)
 
-        # Mostrar texto en imagen
+        # Mostrar predicción
         color = (0, 255, 0) if pred_class == 'Blanca' else (255, 0, 0) if pred_class == 'Oscura' else (0, 165, 255)
         cv2.putText(img, f"{pred_class} ({confidence*100:.1f}%)", (10, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
-        # Mostrar con matplotlib
+        # Mostrar imagen
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.title(f"Ropa: {pred_class}")
         plt.axis('off')
         plt.show()
 
+# ==== LIMPIEZA ====
 cam.release()
 cv2.destroyAllWindows()
-pi.stop()
+for servo in servos.values():
+    servo.stop()
+GPIO.cleanup()
