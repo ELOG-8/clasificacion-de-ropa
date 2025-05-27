@@ -16,3 +16,6 @@ pip install --upgrade pip
 pip install tensorflow
 pip install opencv-python
 pip install matplotlib
+
+
+python3 clasificador_servos.py
