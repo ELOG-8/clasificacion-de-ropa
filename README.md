@@ -92,3 +92,8 @@ sudo apt install python3-gpiozero
 
 sudo systemctl start pigpiod
 sudo systemctl enable pigpiod
+
+sudo apt update
+sudo apt install python3-rpi.gpio
+
+pip3 install RPi.GPIO
