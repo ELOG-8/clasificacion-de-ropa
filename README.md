@@ -1,1 +1,18 @@
 # clasificacion-de-ropa
+sudo apt update && sudo apt upgrade -y
+sudo apt install python3-pip python3-opencv libatlas-base-dev -y
+pip3 install numpy matplotlib
+pip3 install tflite-runtime
+
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install libhdf5-dev libc-ares-dev libeigen3-dev -S
+sudo apt-get install -y build-essential cmake gfortran libjpeg-dev libtiff-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libgtk-3-dev libatlas-base-dev libblas-dev liblapack-dev 
+sudo apt-get install python3-venv
+python3 -m venv tf-env
+source tf-env/bin/activate
+pip install --upgrade pip
+pip install tensorflow
+pip install opencv-python
+pip install matplotlib
